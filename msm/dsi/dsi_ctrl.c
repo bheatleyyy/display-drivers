@@ -3119,8 +3119,6 @@ int dsi_ctrl_host_timing_update(struct dsi_ctrl *dsi_ctrl)
 		return -EINVAL;
 	}
 
-	mutex_lock(&dsi_ctrl->ctrl_lock);
-
 	if (dsi_ctrl->hw.ops.host_setup)
 		dsi_ctrl->hw.ops.host_setup(&dsi_ctrl->hw,
 				&dsi_ctrl->host_config.common_config);
@@ -3138,11 +3136,9 @@ int dsi_ctrl_host_timing_update(struct dsi_ctrl *dsi_ctrl)
 				0x0, NULL);
 	} else {
 		DSI_CTRL_ERR(dsi_ctrl, "invalid panel mode for resolution switch\n");
-		mutex_unlock(&dsi_ctrl->ctrl_lock);
 		return -EINVAL;
 	}
 
-	mutex_unlock(&dsi_ctrl->ctrl_lock);
 	return 0;
 }
 
@@ -3514,16 +3510,14 @@ int dsi_ctrl_cmd_transfer(struct dsi_ctrl *dsi_ctrl,
 
 	if (*flags & DSI_CTRL_CMD_READ) {
 		rc = dsi_message_rx(dsi_ctrl, msg, flags);
-		if (rc <= 0) {
+		if (rc <= 0)
 			DSI_CTRL_ERR(dsi_ctrl, "read message failed read length, rc=%d\n",
 					rc);
-		}
 	} else {
 		rc = dsi_message_tx(dsi_ctrl, msg, flags);
-		if (rc) {
+		if (rc)
 			DSI_CTRL_ERR(dsi_ctrl, "command msg transfer failed, rc = %d\n",
 					rc);
-		}
 	}
 
 	dsi_ctrl_update_state(dsi_ctrl, DSI_CTRL_OP_CMD_TX, 0x0);
