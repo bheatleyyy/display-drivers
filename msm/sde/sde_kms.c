@@ -64,15 +64,10 @@
 #include "sde_trace.h"
 #ifdef OPLUS_BUG_STABILITY
 #include "oplus_display_private_api.h"
-#include "oplus_onscreenfingerprint.h"
 #endif
 
 #ifdef OPLUS_BUG_STABILITY
 #include "oplus_dc_diming.h"
-#endif
-
-#if IS_ENABLED(CONFIG_OPLUS_FEATURE_THEIA)
-#include <soc/oplus/system/theia_send_event.h> /* for theia_send_event etc */
 #endif
 
 /* defines for secure channel call */
@@ -1162,14 +1157,6 @@ static void sde_kms_prepare_commit(struct msm_kms *kms,
 	rc = pm_runtime_get_sync(sde_kms->dev->dev);
 	if (rc < 0) {
 		SDE_ERROR("failed to enable power resources %d\n", rc);
-		#ifdef OPLUS_BUG_STABILITY
-		#ifdef CONFIG_OPLUS_FEATURE_MM_FEEDBACK
-		SDE_MM_ERROR("DisplayDriverID@@415$$failed to enable power resources %d\n", rc);
-		#endif /*CONFIG_OPLUS_FEATURE_MM_FEEDBACK*/
-		#endif /* OPLUS_BUG_STABILITY */
-#if IS_ENABLED(CONFIG_OPLUS_FEATURE_THEIA)
-		theia_send_event(THEIA_EVENT_HARDWARE_ERROR, THEIA_LOGINFO_KERNEL_LOG, current->pid, "failed to enable power resources");
-#endif
 		SDE_EVT32(rc, SDE_EVTLOG_ERROR);
 		goto end;
 	}
