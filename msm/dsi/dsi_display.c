@@ -22,11 +22,6 @@
 #include "sde_dbg.h"
 #include "dsi_parser.h"
 #ifdef OPLUS_BUG_STABILITY
-#ifdef OPLUS_BUG_STABILITY
-#ifdef CONFIG_OPLUS_FEATURE_MM_FEEDBACK
-#include <soc/oplus/system/oplus_mm_kevent_fb.h>
-#endif //CONFIG_OPLUS_FEATURE_MM_FEEDBACK
-#endif /* OPLUS_BUG_STABILITY */
 #include <linux/msm_drm_notify.h>
 #include <linux/notifier.h>
 #include "oplus_display_private_api.h"
@@ -695,12 +690,6 @@ static bool dsi_display_validate_reg_read(struct dsi_panel *panel)
 	int group = 0, count = 0;
 	struct drm_panel_esd_config *config;
 
-#ifdef OPLUS_BUG_STABILITY
-#ifdef CONFIG_OPLUS_FEATURE_MM_FEEDBACK
-	int rc = 0;
-#endif /*CONFIG_OPLUS_FEATURE_MM_FEEDBACK*/
-#endif
-
 	if (!panel)
 		return false;
 
@@ -718,11 +707,6 @@ static bool dsi_display_validate_reg_read(struct dsi_panel *panel)
 				config->status_value[group + i]) {
 				DRM_ERROR("mismatch: 0x%x\n",
 						config->return_buf[i]);
-				#ifdef OPLUS_BUG_STABILITY
-				#ifdef CONFIG_OPLUS_FEATURE_MM_FEEDBACK
-				rc = -1;
-				#endif /*CONFIG_OPLUS_FEATURE_MM_FEEDBACK*/
-				#endif  /*OPLUS_BUG_STABILITY*/
 				break;
 			}
 		}
@@ -731,22 +715,6 @@ static bool dsi_display_validate_reg_read(struct dsi_panel *panel)
 			return true;
 		group += len;
 	}
-
-#ifdef OPLUS_BUG_STABILITY
-#ifdef CONFIG_OPLUS_FEATURE_MM_FEEDBACK
-	if (rc <= 0) {
-		char payload[150] = "";
-		int cnt = 0;
-		cnt += scnprintf(payload + cnt, sizeof(payload) - cnt, "DisplayDriverID@@408$$");
-		cnt += scnprintf(payload + cnt, sizeof(payload) - cnt, "ESD:");
-		for (i = 0; i < len; ++i)
-			cnt += scnprintf(payload + cnt, sizeof(payload) - cnt, "[%02x] ", config->return_buf[i]);
-
-		DRM_ERROR("ESD check failed: %s\n", payload);
-		mm_fb_display_kevent(payload, MM_FB_KEY_RATELIMIT_1H, "ESD check failed");
-	}
-#endif //CONFIG_OPLUS_FEATURE_MM_FEEDBACK
-#endif  /*OPLUS_BUG_STABILITY*/
 
 	return false;
 }
@@ -956,18 +924,6 @@ static int dsi_display_status_check_te(struct dsi_display *display,
 					esd_te_timeout)) {
 			DSI_ERR("TE check failed\n");
 			dsi_display_change_te_irq_status(display, false);
-			#ifdef OPLUS_BUG_STABILITY
-			#ifdef CONFIG_OPLUS_FEATURE_MM_FEEDBACK
-			{
-				char payload[150] = "";
-
-				scnprintf(payload, sizeof(payload), "ESD:");
-
-				DRM_ERROR("ESD TE check failed: %s\n", payload);
-				mm_fb_display_kevent(payload, MM_FB_KEY_RATELIMIT_1H, "ESD TE check failed");
-			}
-			#endif /* CONFIG_OPLUS_FEATURE_MM_FEEDBACK */
-			#endif /* OPLUS_BUG_STABILITY */
 			return -EINVAL;
 		}
 	}
@@ -8172,11 +8128,6 @@ int dsi_display_prepare(struct dsi_display *display)
 			if (rc) {
 				DSI_ERR("[%s] panel pre-switch failed, rc=%d\n",
 					display->name, rc);
-				#ifdef OPLUS_BUG_STABILITY
-				#ifdef CONFIG_OPLUS_FEATURE_MM_FEEDBACK
-				DSI_MM_ERR("[dsi error] [%s] panel pre-switch failed, rc=%d\n",display->name, rc);
-				#endif /*CONFIG_OPLUS_FEATURE_MM_FEEDBACK*/
-				#endif
 			}
 			goto error;
 		}
