@@ -8096,7 +8096,6 @@ int dsi_display_prepare(struct dsi_display *display)
 			if (rc)
 				DSI_ERR("[%s] panel pre-switch failed, rc=%d\n",
 					display->name, rc);
-			}
 			goto error;
 		}
 	}
