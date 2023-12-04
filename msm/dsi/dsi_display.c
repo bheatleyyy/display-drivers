@@ -4444,14 +4444,6 @@ static int dsi_display_res_init(struct dsi_display *display)
 		goto error_ctrl_put;
 	}
 
-#if defined(CONFIG_PXLW_IRIS5)
-        display->panel->ext_clk = devm_clk_get(&display->pdev->dev, "pw_bb_clk3");
-        if (IS_ERR_OR_NULL(display->panel->ext_clk)) {
-            rc = PTR_ERR(display->panel->ext_clk);
-            DSI_ERR("failed to get %s, rc=%d\n", "pw_bb_clk3", rc);
-            }
-#endif
-
 	display_for_each_ctrl(i, display) {
 		struct msm_dsi_phy *phy = display->ctrl[i].phy;
 
@@ -5629,10 +5621,6 @@ int dsi_display_cont_splash_config(void *dsi_display)
 		goto clk_manager_update;
 	}
 
-#if defined(CONFIG_PXLW_IRIS5)
-	iris5_control_pwr_regulator(display->panel,true);
-#endif
-
 	mutex_unlock(&display->display_lock);
 
 	/* Set the current brightness level */
@@ -6303,23 +6291,6 @@ end:
 	return rc;
 }
 
-#if defined(CONFIG_PXLW_IRIS5)
-
-void iris5_deinit(struct dsi_display *display)
-{
-	struct dsi_panel *panel;
-
-	panel = display->panel;
-
-	if (panel->ext_clk) {
-		devm_clk_put(&display->pdev->dev, panel->ext_clk);
-		panel->ext_clk = NULL;
-	}
-
-	//dsi_iris_vreg_put();
-}
-#endif
-
 int dsi_display_dev_remove(struct platform_device *pdev)
 {
 	int rc = 0, i = 0;
@@ -6332,9 +6303,6 @@ int dsi_display_dev_remove(struct platform_device *pdev)
 	}
 
 	display = platform_get_drvdata(pdev);
-#if defined(CONFIG_PXLW_IRIS5)
-        iris5_deinit(display);
-#endif
 
 	/* decrement ref count */
 	of_node_put(display->panel_node);
@@ -8125,7 +8093,7 @@ int dsi_display_prepare(struct dsi_display *display)
 		if (!is_skip_op_required(display)) {
 			/* update dsi ctrl for new mode */
 			rc = dsi_display_pre_switch(display);
-			if (rc) {
+			if (rc)
 				DSI_ERR("[%s] panel pre-switch failed, rc=%d\n",
 					display->name, rc);
 			}
@@ -8551,16 +8519,6 @@ int dsi_display_enable(struct dsi_display *display)
 	if (is_skip_op_required(display)) {
 
 		dsi_display_config_ctrl_for_cont_splash(display);
-#if defined(CONFIG_PXLW_IRIS5)
-		if (display->panel->ext_clk) {
-			DSI_DEBUG("clk enable\n");
-			clk_prepare_enable(display->panel->ext_clk);
-			usleep_range(5000, 5000);
-		} else { // No need to control vdd and clk
-			DSI_ERR("clk not prepare for iris5\n");
-		}
-#endif
-
 		rc = dsi_display_splash_res_cleanup(display);
 		if (rc) {
 			DSI_ERR("Continuous splash res cleanup failed, rc=%d\n",
